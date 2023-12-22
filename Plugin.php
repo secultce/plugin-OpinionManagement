@@ -34,6 +34,7 @@ class Plugin extends \MapasCulturais\Plugin
                     $this->part('OpinionManagement/btn-show-opinion.php');
                 });
 
+                $app->view->enqueueScript('app', 'opinion-management', 'OpinionManagement/js/opinionManagement.js');
             }
         });
     }
