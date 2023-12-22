@@ -23,18 +23,17 @@ class OpinionManagement extends Controller
         $this->render('index', ['config' => $config]);
     }
 
+
     public function GET_opinions(): void
     {
         $app = App::i();
         if($app->user->is('guest')) {
-            http_response_code(404);
-            exit();
+            $app->redirect($app->getBaseUrl());
         }
 
         $registration = $app->repo('Registration')->find($this->getData['id']);
         if(!$registration->canUser('viewUserEvaluation')) {
-            http_response_code(404);
-            exit();
+            $app->redirect($app->getBaseUrl());
         }
 
         $opinions = $app->repo('RegistrationEvaluation')->findBy(['registration' => $registration->id]);
