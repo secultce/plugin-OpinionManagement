@@ -1,15 +1,23 @@
+const collapseEvaluation = ev => {
+    ev.target.classList.toggle('active')
+    console.log('oooo')
+}
+
 $(document).ready(() => {
     const opinionHtml = opinion => {
-        let htmlParsed = '<div class="">'
-        htmlParsed += `<h3>Parecerista ${opinion.agent.name}</h3>`
-        htmlParsed += `<p>Resultado da avaliação documental: ${opinion.resultString}</p>`
+        let htmlParsed = '<div class="opinion">'
+        htmlParsed += `<div class="evaluation-title">
+            <h3>Parecerista ${opinion.agent.name}</h3>
+            <div class="collapsible" onClick="collapseEvaluation"></div>
+            <p>Resultado da avaliação documental: ${opinion.resultString}</p>
+        </div>`
         for(const criteriaId in opinion.evaluationData) {
             if(criteriaId !== 'published') {
                 const criteria = opinion.evaluationData[criteriaId]
                 htmlParsed += `<div class="criteria-fields">`
                 htmlParsed += `<h5>${criteria.label}</h5>`
-                htmlParsed += `<span class="criteria-status-${criteria.evaluation === '' ? 'pending' : criteria.evaluation}"></span>`
-                htmlParsed += criteria.evaluation === 'invalid' ? `<p class="evaluation-obs">${criteria['obs_items']}</p>` : ''
+                htmlParsed += `<p class="criteria-status-${criteria.evaluation === '' ? 'pending' : criteria.evaluation}"></p>`
+                htmlParsed += criteria.evaluation === 'invalid' ? `<p class="opinion-evaluation-obs">${criteria['obs_items']}</p>` : ''
                 htmlParsed += `</div>`
             }
         }
@@ -67,5 +75,4 @@ $(document).ready(() => {
         childList: true,
         subtree: true
     })
-
 })

@@ -23,6 +23,11 @@ class Plugin extends \MapasCulturais\Plugin
                'swal2-theme-secultce',
                'css/swal2-secultce.min.css'
            );
+           $app->view->enqueueStyle(
+               'app',
+               'opinionManagement',
+               'css/opinionManagement.css'
+           );
         });
 
         $app->hook('template(opportunity.<<create|edit|single>>.registration-list-header):end', function() use($app) {
