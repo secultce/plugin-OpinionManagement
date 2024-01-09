@@ -1,16 +1,12 @@
-const collapseEvaluation = ev => {
-    ev.target.classList.toggle('active')
-    console.log('oooo')
-}
-
 $(document).ready(() => {
     const opinionHtml = opinion => {
         let htmlParsed = '<div class="opinion">'
         htmlParsed += `<div class="evaluation-title">
             <h3>Parecerista ${opinion.agent.name}</h3>
-            <div class="collapsible" onClick="collapseEvaluation"></div>
-            <p>Resultado da avaliação documental: ${opinion.resultString}</p>
-        </div>`
+            <label for="chk-collapse"><div class="collapsible"></div></label>
+            <p>Resultado da avaliação documental: <span class="criteria-status-${opinion.result < 0 ? 'invalid' : 'valid'}"></span></p>
+        </div>
+        <input type="checkbox" id="chk-collapse">`
         for(const criteriaId in opinion.evaluationData) {
             if(criteriaId !== 'published') {
                 const criteria = opinion.evaluationData[criteriaId]

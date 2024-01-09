@@ -12,14 +12,17 @@
 }
 
 .opinion {
-    border: 1px solid var(--high-dark);
+    border: 1px solid var(--low-light);
     border-radius: 4px;
-    padding: 16px;
-    font-family: "Open Sans", sans-serif;
+    padding: 13px 16px;
+    font-family: "Open Sans", Helvetica, Arial, sans-serif;
     display: flex;
     flex-direction: column;
     gap: 16px;
     min-width: 500px;
+}
+.opinion:has(#chk-collapse:not(:checked)) {
+    gap: 0;
 }
 
 .opinion * {
@@ -27,25 +30,43 @@
 }
 
 .opinion .evaluation-title {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 3fr 1fr;
     justify-content: space-between;
 }
 .opinion .evaluation-title .collapsible {
     color:#117C83;
+    position: relative;
 }
 .opinion .evaluation-title .collapsible:after {
-    content: 'Exibir ';
-    color:#117C83;
+    content: 'Exibir \2304';
+    cursor: pointer;
+    position: absolute;
+    right: 0;
 }
-.opinion .evaluation-title .collapsible.active:after {
-    content: 'Esconder '
+.opinion:has(#chk-collapse:checked) .evaluation-title .collapsible:after {
+    content: 'Esconder \2303';
+    /*color: #117C83;*/
 }
+.opinion #chk-collapse:not(:checked) ~ .criteria-fields {
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    opacity: 0;
+}
+.opinion #chk-collapse:checked ~ .criteria-fields {
+    max-height: 100px;
+    display: initial;
+}
+
+.opinion #chk-collapse {display: none}
 
 .opinion .evaluation-title h3 {
     font-size: 18px;
     font-weight: 700;
     text-align: start;
+    margin-bottom: 16px;
 }
 
 .opinion h5 {
@@ -57,12 +78,11 @@
 }
 
 .criteria-fields {
-    /*display: flex;*/
-    /*align-items: baseline;*/
-    /*justify-content: space-between;*/
     border: 1px solid var(--high-dark);
     border-radius: 4px;
     padding: 16px;
+    transition: all .4s ease-in-out 0s;
+    overflow: hidden;
 }
 
 .criteria-status-valid, .criteria-status-invalid, .criteria-status-pending {
