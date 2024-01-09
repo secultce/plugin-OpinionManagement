@@ -20,6 +20,7 @@
     flex-direction: column;
     gap: 16px;
     min-width: 500px;
+    margin-bottom: 16px;
 }
 .opinion:has(#chk-collapse:not(:checked)) {
     gap: 0;

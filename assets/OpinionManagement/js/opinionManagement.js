@@ -34,7 +34,12 @@ $(document).ready(() => {
                 })
             })
             .catch(error => {
-                console.log(error)
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "Alconteceu um problema!",
+                    footer: `<code style="font-size:8px">${error}</code>`
+                })
             })
     }
 
