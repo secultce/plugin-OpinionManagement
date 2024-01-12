@@ -36,10 +36,10 @@ class OpinionManagement extends Controller
 
         $registration = $app->repo('Registration')->find($this->getData['id']);
         $opinions = [];
-        if(!$registration->canUser('view')) {
-            $opinions = $app->repo('RegistrationEvaluation')->findBy(['registration' => $registration->id]);
-            $opinions = new RegistrationEvaluationList($opinions);
-            echo $this->json($opinions);
+        if($registration->canUser('view')) {
+//            $opinions = $app->repo('RegistrationEvaluation')->findBy(['registration' => $registration->id]);
+            $opinions = new RegistrationEvaluationList($registration);
+            $this->json($opinions);
             exit;
         }
 
