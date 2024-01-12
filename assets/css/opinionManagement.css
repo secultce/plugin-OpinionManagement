@@ -63,7 +63,8 @@
 
 .opinion #chk-collapse {display: none}
 
-.opinion .evaluation-title h3 {
+.opinion .evaluation-title h3,
+.opinion .evaluation-title h3 * {
     font-size: 18px;
     font-weight: 700;
     text-align: start;

@@ -1,10 +1,11 @@
 $(document).ready(() => {
     const opinionHtml = opinion => {
+        console.log(opinion)
         let htmlParsed = '<div class="opinion">'
         htmlParsed += `<div class="evaluation-title">
-            <h3>Parecerista ${opinion.agent.name}</h3>
+            <h3>Parecerista <a href="${opinion.agent.singleUrl}" target="_blank">${opinion.agent.name}</a></h3>
             <label for="chk-collapse"><div class="collapsible"></div></label>
-            <p>Resultado da avaliação documental: <span class="criteria-status-${opinion.result < 0 ? 'invalid' : 'valid'}"></span></p>
+            <p>Resultado da avaliação documental:<a href="${opinion.singleUrl}" class="criteria-status-${opinion.result < 0 ? 'invalid' : 'valid'}"></a></p>
         </div>
         <input type="checkbox" id="chk-collapse">`
         for(const criteriaId in opinion.evaluationData) {
@@ -24,9 +25,17 @@ $(document).ready(() => {
     const showOpinions = registrationId => {
         fetch(MapasCulturais.baseURL + 'opinionManagement/opinions?'+ new URLSearchParams({
             id: registrationId
-        }))
-            .then(response => response.json())
+        }), {
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+            .then(response => {
+                console.log(response)
+                return response.json()
+            })
             .then(opinions => {
+                console.log(opinions)
                 const html = `<div>${opinions.map(opinion => opinionHtml(opinion)).join('')}</div>`;
 
                 Swal.fire({

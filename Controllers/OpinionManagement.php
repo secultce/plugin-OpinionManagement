@@ -2,8 +2,11 @@
 
 namespace OpinionManagement\Controllers;
 
+use http\Url;
 use MapasCulturais\Controller,
     MapasCulturais\App;
+use MapasCulturais\Entities\Agent;
+use OpinionManagement\Helpers\RegistrationEvaluationList;
 
 class OpinionManagement extends Controller
 {
@@ -32,11 +35,18 @@ class OpinionManagement extends Controller
         }
 
         $registration = $app->repo('Registration')->find($this->getData['id']);
-        if(!$registration->canUser('viewUserEvaluation')) {
-            $app->redirect($app->getBaseUrl());
+        $opinions = [];
+        if(!$registration->canUser('view')) {
+            $opinions = $app->repo('RegistrationEvaluation')->findBy(['registration' => $registration->id]);
+            $opinions = new RegistrationEvaluationList($opinions);
+            echo $this->json($opinions);
+            exit;
         }
 
-        $opinions = $app->repo('RegistrationEvaluation')->findBy(['registration' => $registration->id]);
-        $this->json($opinions);
+//        if(!$registration->canUser('viewUserEvaluation')){
+//            dump($opinions[0]->jsonSerialize());
+//            dump($opinions[0]);//new \ArrayObject(['name' => '1', 'singleUrl' => $registration->singleUrl]);
+//        }
+//        $this->json($opinions);
     }
 }

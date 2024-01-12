@@ -31,6 +31,10 @@ class Plugin extends \MapasCulturais\Plugin
         });
 
         $app->hook('template(opportunity.<<create|edit|single>>.registration-list-header):end', function() use($app) {
+            if($this->controller->requestedEntity->evaluationMethodConfiguration->type != 'documentary') {
+                return;
+            }
+
             if($app->user->is('admin')) {
 
                 $this->part('OpinionManagement/registrations-table-column-admin.php');
