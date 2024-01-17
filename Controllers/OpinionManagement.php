@@ -2,11 +2,9 @@
 
 namespace OpinionManagement\Controllers;
 
-use http\Url;
 use MapasCulturais\Controller,
     MapasCulturais\App;
-use MapasCulturais\Entities\Agent;
-use OpinionManagement\Helpers\RegistrationEvaluationList;
+use OpinionManagement\Helpers\EvaluationList;
 
 class OpinionManagement extends Controller
 {
@@ -34,19 +32,17 @@ class OpinionManagement extends Controller
             $app->redirect($app->getBaseUrl());
         }
 
+        /**
+         * @var $registration \MapasCulturais\Entities\Registration
+         */
         $registration = $app->repo('Registration')->find($this->getData['id']);
         $opinions = [];
         if($registration->canUser('view')) {
-//            $opinions = $app->repo('RegistrationEvaluation')->findBy(['registration' => $registration->id]);
-            $opinions = new RegistrationEvaluationList($registration);
+            $opinions = new EvaluationList($registration);
             $this->json($opinions);
-            exit;
+            return;
         }
 
-//        if(!$registration->canUser('viewUserEvaluation')){
-//            dump($opinions[0]->jsonSerialize());
-//            dump($opinions[0]);//new \ArrayObject(['name' => '1', 'singleUrl' => $registration->singleUrl]);
-//        }
-//        $this->json($opinions);
+        $this->errorJson(['permission-denied'], 403);
     }
 }

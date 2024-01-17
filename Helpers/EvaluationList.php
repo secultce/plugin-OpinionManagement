@@ -4,8 +4,9 @@ namespace OpinionManagement\Helpers;
 
 use MapasCulturais\App;
 use MapasCulturais\Entities\Registration;
+use MapasCulturais\Entities\RegistrationEvaluation;
 
-class RegistrationEvaluationList implements \JsonSerializable
+class EvaluationList implements \JsonSerializable
 {
 
     /**
@@ -29,19 +30,16 @@ class RegistrationEvaluationList implements \JsonSerializable
     public function jsonSerialize(): array
     {
         $app = App::i();
-        $index = 1;
-        return array_map(function ($evaluation) use (&$index, $app): array {
-            $evaluation = $evaluation->jsonSerialize();
+        return array_map(function (int $index, RegistrationEvaluation $evaluation): array {
+            $evaluationSerialized = $evaluation->jsonSerialize();
             if(!$this->registration->canUser('viewUserEvaluation')) {
-                $evaluation['agent'] = [
+                $evaluationSerialized['agent'] = [
                     'id' => $index,
-                    'name' => $index,
+                    'name' => $index+1,
                 ];
+                $evaluationSerialized['singleUrl'] = $evaluationSerialized['registration']->singleUrl;
             }
-            $index++;
-            return $evaluation;
-        }, $this->registrationEvaluations);
+            return $evaluationSerialized;
+        }, array_keys($this->registrationEvaluations), array_values($this->registrationEvaluations));
     }
-
-
 }
