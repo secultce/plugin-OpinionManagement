@@ -1,13 +1,22 @@
+const handleChkCollapseChange = target => {
+    const chkCollapses = $('.chk-collapse')
+    for(let i= 0;i < chkCollapses.length; i++) {
+        if (chkCollapses[i] === target) continue
+        chkCollapses[i].checked = false
+    }
+}
+
 $(document).ready(() => {
+
     const opinionHtml = opinion => {
         console.log(opinion)
         let htmlParsed = '<div class="opinion">'
         htmlParsed += `<div class="evaluation-title">
             <h3>Parecerista <a href="${opinion.agent.singleUrl}" target="_blank">${opinion.agent.name}</a></h3>
-            <label for="chk-collapse"><div class="collapsible"></div></label>
+            <label for="chk-collapse-${opinion.id}"><div class="collapsible"></div></label>
             <p>Resultado da avaliação documental:<a href="${opinion.singleUrl}" class="criteria-status-${opinion.result < 0 ? 'invalid' : 'valid'}"></a></p>
         </div>
-        <input type="checkbox" id="chk-collapse">`
+        <input type="checkbox" id="chk-collapse-${opinion.id}" class="chk-collapse" name="chk-collapse" onchange="handleChkCollapseChange(this)">`
         for(const criteriaId in opinion.evaluationData) {
             if(criteriaId !== 'published') {
                 const criteria = opinion.evaluationData[criteriaId]
@@ -77,7 +86,7 @@ $(document).ready(() => {
         }
 
         // @todo: Melhorar a validação para remover o MutationObserver caso todos os inscritos já carregaram na paǵina
-        if(document.querySelectorAll('.showOpinion').length % 50 !== 0) {
+        if(document.querySelectorAll("tr[id^='#registration']").length % 50 !== 0) {
             observer.disconnect()
         }
     })
