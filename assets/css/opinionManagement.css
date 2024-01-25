@@ -7,7 +7,7 @@
     --high-pure: #fff;
 }
 
-swal2-container {
+.swal2-container {
     z-index: 1800;
 }
 .swal2-popup:has(.opinion) {
@@ -16,6 +16,11 @@ swal2-container {
 
 .registration-status-col:has(.status-notapproved), .status-notapproved {
     width: max-content;
+}
+
+div:has(>.showOpinion) {
+    display: flex;
+    justify-content: end;
 }
 
 .opinion {
@@ -28,6 +33,11 @@ swal2-container {
     gap: 16px;
     width: 800px;
     margin-bottom: 16px;
+    scroll-behavior: smooth;
+}
+.opinion:has(.chk-collapse:checked) {
+    max-height: 400px;
+    overflow: auto;
 }
 .opinion:has(.chk-collapse:not(:checked)) {
     gap: 0;
@@ -64,9 +74,10 @@ swal2-container {
     margin: 0;
     border: none;
     opacity: 0;
+    overflow: hidden;
 }
 .opinion .chk-collapse:checked ~ .criteria-fields {
-    max-height: 100px;
+    /*max-height: 100px;*/
     display: initial;
 }
 
@@ -93,7 +104,6 @@ swal2-container {
     border-radius: 4px;
     padding: 8px;
     transition: all .4s ease-in-out 0s;
-    overflow: hidden;
 }
 
 .criteria-status-valid, .criteria-status-invalid, .criteria-status-pending {
