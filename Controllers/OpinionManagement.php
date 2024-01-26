@@ -24,7 +24,6 @@ class OpinionManagement extends Controller
         $this->render('index', ['config' => $config]);
     }
 
-
     public function GET_opinions(): void
     {
         $app = App::i();
@@ -44,5 +43,20 @@ class OpinionManagement extends Controller
         }
 
         $this->errorJson(['permission-denied'], 403);
+    }
+
+    public function POST_publishOpinions(): void
+    {
+        $app = App::i();
+        if($app->user->is('guest')) {
+            $app->redirect($app->getBaseUrl());
+        }
+
+        $opportunity = $app->repo('Opportunity')->find($this->postData['id']);
+        if($opportunity->isUserAdmin($app->user)) {
+            echo 'is admin' . PHP_EOL;
+        }
+
+        echo $this->postData['id'];
     }
 }

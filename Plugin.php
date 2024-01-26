@@ -100,6 +100,10 @@ class Plugin extends \MapasCulturais\Plugin
                 'OpinionManagement/js/opinionManagement.js'
             );
         });
+
+        $app->hook('template(opportunity.single.header-inscritos):actions', function () use ($app) {
+            $this->part('OpinionManagement/admin-btn-publish-opinion.php');
+        });
     }
 
     public function register(): void
