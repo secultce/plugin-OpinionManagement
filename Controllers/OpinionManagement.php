@@ -53,10 +53,10 @@ class OpinionManagement extends Controller
         }
 
         $opportunity = $app->repo('Opportunity')->find($this->postData['id']);
-        if($opportunity->isUserAdmin($app->user)) {
-            echo 'is admin' . PHP_EOL;
+        if(!$opportunity->isUserAdmin($app->user)) {
+            return;
         }
 
-        echo $this->postData['id'];
+//        dump($opportunity->);
     }
 }
