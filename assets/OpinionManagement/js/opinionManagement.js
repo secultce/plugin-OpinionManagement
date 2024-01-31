@@ -16,10 +16,6 @@ const opinionHtml = opinion => {
     </div>
     <input type="checkbox" id="chk-collapse-${opinion.id}" class="chk-collapse" name="chk-collapse" onchange="handleChkCollapseChange(this)">`
     for(const criteriaId in opinion.evaluationData) {
-        if(criteriaId === 'published') {
-            continue
-        }
-
         const criteria = opinion.evaluationData[criteriaId]
         criteria.obs_items = criteria.obs_items?.replace('\n','<br>')
         criteria.obs = criteria.obs?.replace('\n','<br>')

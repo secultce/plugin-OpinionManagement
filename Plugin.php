@@ -13,11 +13,11 @@ class Plugin extends \MapasCulturais\Plugin
     {
         $app = App::i();
 
-        $app->hook('template(<<registration|opportunity>>.single.head):begin', function () use ($app) {
+        $app->hook('template(<<registration|opportunity>>.<<single|view>>.head):begin', function () use ($app) {
             $app->view->enqueueScript(
                 'app',
                 'swal2',
-                'https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/swetalert2.all.min.js'
+                'js/sweetalert2.all.min.js'
             );
             $app->view->enqueueStyle(
                 'app',
@@ -40,7 +40,7 @@ class Plugin extends \MapasCulturais\Plugin
             $app->view->enqueueScript(
                 'app',
                 'swal2',
-                'https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/swetalert2.all.min.js'
+                'js/sweetalert2.all.min.js'
             );
             $app->view->enqueueStyle(
                 'app',
@@ -61,36 +61,49 @@ class Plugin extends \MapasCulturais\Plugin
         });
 
         $app->hook('template(opportunity.single.registration-list-header):end', function() use($app) {
-            if($this->controller->requestedEntity->evaluationMethodConfiguration->type != 'documentary') {
+            $opportunity = $this->controller->requestedEntity;
+            if($opportunity->evaluationMethodConfiguration->type != 'documentary') {
                 return;
             }
 
-            if($app->user->is('admin')) {
-
+            if($opportunity->canUser('@control')) {
                 $this->part('OpinionManagement/admin-registrations-table-column.php');
+                $app->view->enqueueScript(
+                    'app',
+                    'opinion-management-tab-registrations',
+                    'OpinionManagement/js/admin-tab-registrations.js'
+                );
 
                 $app->hook('template(opportunity.single.registration-list-item):end', function() {
                     $this->part('OpinionManagement/admin-btn-show-opinion.php');
                 });
             }
         });
-
-        /*$app->hook('template(registration.view.header-fieldset):after', function() use($app) {
-            $this->part('OpinionManagement/user-btn-show-opinion.php');
-            $app->view->enqueueScript(
-                'app',
-                'opinion-management',
-                'OpinionManagement/js/opinionManagement.js'
-            );
-        });*/
-
-        $app->hook('template(opportunity.single.user-registration-table--registration--status):end', function ($reg_args) use ($app) {
-            $registration = $reg_args;
+        $app->hook('template(opportunity.single.user-registration-table--registration--status):end', function ($registration, $opportunity) use ($app) {
+            if($opportunity->evaluationMethodConfiguration->type != 'documentary' || !$opportunity->publishedRegistrations) {
+                return;
+            }
 
             if($registration->canUser('@control')) {
                 $this->part('OpinionManagement/user-btn-show-opinion.php', ['registration' => $registration]);
             }
         });
+
+        $app->hook('template(registration.view.header-fieldset):after', function() use($app) {
+            $registration = $this->controller->requestedEntity;
+            $opportunity = $registration->opportunity;
+
+            // http://localhost:8080/inscricao/612180872/
+
+            if($opportunity->evaluationMethodConfiguration->type != 'documentary' || (!$opportunity->publishedRegistrations && !$opportunity->canUser('@control'))) {
+                return;
+            }
+
+            if($registration->canUser('@control')) {
+                $this->part('OpinionManagement/user-btn-show-opinion.php');
+            }
+        });
+
 
         $app->hook('template(panel.registrations.panel-registration-meta):end', function ($registration) use ($app) {
             $this->part('OpinionManagement/user-btn-show-opinion.php', ['registration' => $registration]);
@@ -100,43 +113,6 @@ class Plugin extends \MapasCulturais\Plugin
                 'OpinionManagement/js/opinionManagement.js'
             );
         });
-
-        $app->hook('template(opportunity.single.header-inscritos):actions', function () use ($app) {
-            $opportunity = $this->controller->requestedEntity;
-            if($opportunity->opinionsPublished) return;
-            if($opportunity->isUserAdmin($app->user)) {
-                $this->part('OpinionManagement/admin-btn-publish-opinion.php', ['entity' => $opportunity]);
-            }
-        });
-
-        $app->hook('POST(opportunity.opinionsPublished)', function () use ($app) {
-
-            $opportunity = $app->repo('Opportunity')->find($this->data['id']);
-            if(!$opportunity->isUserAdmin($app->user)) return;
-
-            $opinionsPublished = $app->repo('OpportunityMeta')->findOneBy([
-                'owner' =>  $this->data['id'],
-                'key' => 'opinionsPublished'
-            ]);
-
-            if(empty($opinionsPublished)) {
-                $opinionsPublished = new OpportunityMeta;
-                $opinionsPublished->owner = $opportunity;
-                $opinionsPublished->key = 'opinionsPublished';
-            }
-
-            dump($opinionsPublished);
-
-            $opinionsPublished->value = $this->data['opinionsPublished'];
-            $error = $opinionsPublished->save(true);
-            if($error !== null) {
-                http_response_code(400);
-                exit;
-            }
-
-            $message = $opinionsPublished->value ? 'Pareceres publicados' : 'Pareceres despublicados';
-            $this->json(['message' => $message]);
-        });
     }
 
     public function register(): void
@@ -144,11 +120,6 @@ class Plugin extends \MapasCulturais\Plugin
         $app = App::i();
 
         $app->registerController('opinionManagement', OpinionManagement::class);
-
-        $this->registerOpportunityMetadata('opinionsPublished', [
-            'label' => \MapasCulturais\i::__('Publicar Pareceres'),
-            'type' => 'boolean'
-        ]);
 
     }
 }
