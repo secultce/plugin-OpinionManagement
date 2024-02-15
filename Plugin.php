@@ -30,7 +30,7 @@ class Plugin extends \MapasCulturais\Plugin
             $app->view->enqueueStyle(
                 'app',
                 'opinionManagement',
-                'css/opinionManagement.css'
+                'OpinionManagement/css/opinionManagement.css'
             );
 
             $app->view->enqueueScript(
@@ -53,7 +53,7 @@ class Plugin extends \MapasCulturais\Plugin
             $app->view->enqueueStyle(
                 'app',
                 'opinionManagement',
-                'css/opinionManagement.css'
+                'OpinionManagement/css/opinionManagement.css'
             );
 
             $app->view->enqueueScript(
