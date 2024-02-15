@@ -13,6 +13,9 @@
 .swal2-popup:has(.opinion) {
     width: auto;
 }
+.swal2-close {
+    position: absolute;
+}
 
 .registration-status-col:has(.status-notapproved), .status-notapproved {
     width: max-content;
@@ -21,6 +24,10 @@
 div:has(>.showOpinion) {
     display: flex;
     justify-content: start;
+}
+
+.showOpinion {
+    cursor: pointer;
 }
 
 .opinion {

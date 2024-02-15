@@ -45,11 +45,20 @@ const showOpinions = registrationId => {
             return response.json()
         })
         .then(opinions => {
-            console.log(opinions)
+            // @todo: Talvez seja algo a ser melhorado
+            if(opinions.length === 0)
+                return Swal.fire({
+                    icon: "info",
+                    title: "Não há pareceristas",
+                    text: "Não há pareceristas para esta inscrição"
+                })
+
             const html = `<div>${opinions.map(opinion => opinionHtml(opinion)).join('')}</div>`;
 
             Swal.fire({
-                html
+                html,
+                showCloseButton: true,
+                showConfirmButton: false,
             })
         })
         .catch(error => {

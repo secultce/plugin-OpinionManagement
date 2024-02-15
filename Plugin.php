@@ -3,15 +3,18 @@
 namespace OpinionManagement;
 
 use MapasCulturais\App,
-    MapasCulturais\Entities\OpportunityMeta,
     OpinionManagement\Controllers\OpinionManagement;
 
+/**
+ * @method part(string $string,  array $args = [])
+ * @property mixed|null $controller
+ */
 class Plugin extends \MapasCulturais\Plugin
 {
 
     public function _init(): void
     {
-        $app = App::i();
+        $app = (new App)->i();
 
         $app->hook('template(<<registration|opportunity>>.<<single|view>>.head):begin', function () use ($app) {
             $app->view->enqueueScript(
@@ -36,7 +39,7 @@ class Plugin extends \MapasCulturais\Plugin
                 'OpinionManagement/js/opinionManagement.js'
             );
         });
-        $app->hook('template(panel.registrations.head):begin', function () use ($app) {
+        $app->hook('template(panel.<<registrations|index>>.head):begin', function () use ($app) {
             $app->view->enqueueScript(
                 'app',
                 'swal2',
@@ -105,7 +108,10 @@ class Plugin extends \MapasCulturais\Plugin
         });
 
 
-        $app->hook('template(panel.registrations.panel-registration-meta):end', function ($registration) use ($app) {
+        $app->hook('template(panel.<<registrations|index>>.panel-registration):end', function ($registration) use ($app) {
+            if(!$registration->opportunity->publishedRegistrations
+                || $registration->opportunity->evaluationMethodConfiguration->type != 'documentary'
+            ) return;
             $this->part('OpinionManagement/user-btn-show-opinion.php', ['registration' => $registration]);
             $app->view->enqueueScript(
                 'app',
@@ -115,9 +121,12 @@ class Plugin extends \MapasCulturais\Plugin
         });
     }
 
+    /**
+     * @throws \Exception
+     */
     public function register(): void
     {
-        $app = App::i();
+        $app = (new App)->i();
 
         $app->registerController('opinionManagement', OpinionManagement::class);
 
