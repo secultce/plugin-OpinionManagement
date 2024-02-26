@@ -8,4 +8,4 @@ Plugin para o Mapas Culturais.
 &nbsp;
 > [!NOTE]
 > - Compatíbilidade testada com a versão ^5.x.x. do Mapas Culturais.
-> - Para o melhor funcionamento no Mozzila Firefox, utilizar versão 121 ou mais alta.
+> - Para o melhor funcionamento no Mozzila Firefox, utilizar versão 121 ou superior.
