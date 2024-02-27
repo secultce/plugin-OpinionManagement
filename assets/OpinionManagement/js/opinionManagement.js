@@ -41,7 +41,8 @@ const showOpinions = registrationId => {
         }
     })
         .then(response => {
-            console.log(response)
+            if(response.redirected) throw new Error('Guest')
+            if (!response.ok) throw new Error(response.statusText)
             return response.json()
         })
         .then(opinions => {
@@ -62,11 +63,17 @@ const showOpinions = registrationId => {
             })
         })
         .catch(error => {
+
+            let { message } = error
+            if(error.message === 'Forbidden') message = 'Você não tem permissão para acessar este recurso.'
+            if(error.message === 'Guest') message = 'É necessário estar autenticado.'
+
             Swal.fire({
-                icon: "error",
                 title: "Oops...",
-                text: "Alconteceu um problema!",
-                footer: `<code style="font-size:8px">${error}</code>`
+                text: "Aconteceu um problema!",
+                footer: `<code style="font-size:11px; color:#c93">${message}</code>`,
+                showConfirmButton: false,
+                showCloseButton: true,
             })
         })
 }
