@@ -46,12 +46,11 @@ const showOpinions = registrationId => {
             return response.json()
         })
         .then(opinions => {
-            // @todo: Talvez seja algo a ser melhorado
+            // @todo: Em versões futuras fazer alteração para mostrar quem são os pareceristas com pendências na avaliação
             if(opinions.length === 0)
                 return Swal.fire({
-                    icon: "info",
-                    title: "Não há pareceristas",
-                    text: "Não há pareceristas para esta inscrição"
+                    title: "Não há avaliações!",
+                    text: "As avaliações desta inscrição ainda não foram iniciadas."
                 })
 
             const html = `<div>${opinions.map(opinion => opinionHtml(opinion)).join('')}</div>`;
