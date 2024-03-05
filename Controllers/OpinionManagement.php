@@ -53,8 +53,21 @@ class OpinionManagement extends Controller
 
         $opportunity = $app->repo('Opportunity')->find($this->postData['id']);
         if(!$opportunity->isUserAdmin($app->user)) {
+            $this->errorJson(['permission-denied'], 403);
             return;
         }
 
+
+        $opportunity->setMetadata('publishedOpinions', 'true');
+        $error = $opportunity->save(true);
+        if($error) {
+            $this->errorJson(['error' => new \PDOException('Cannot save this data')], 500);
+            return;
+        }
+
+        $this->json([
+            'success' => true,
+            'pqp' => (bool) null,
+        ]);
     }
 }
