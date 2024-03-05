@@ -85,6 +85,21 @@ class Plugin extends \MapasCulturais\Plugin
             }
         });
 
+        $app->hook('template(opportunity.single.header-inscritos):actions', function () use ($app) {
+            $opportunity = $this->controller->requestedEntity;
+            /**
+             * @todo: Refatorar quando for mudar para publicar pareceres técnicos
+             */
+            if($opportunity->evaluationMethodConfiguration->type != 'documentary'
+                || $opportunity->autopublishOpinions == 'Não'
+                || $opportunity->publishedOpinions == 'true'
+            ) {
+                return;
+            }
+
+            $app->part('OpinionManagement/admin-btn-publish-opinions.php', ['opportunity' => $opportunity]);
+        });
+
         $app->hook('template(registration.view.header-fieldset):after', function() use($app) {
             $registration = $this->controller->requestedEntity;
             $opportunity = $registration->opportunity;
