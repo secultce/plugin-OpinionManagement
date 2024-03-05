@@ -65,9 +65,6 @@ class OpinionManagement extends Controller
             return;
         }
 
-        $this->json([
-            'success' => true,
-            'pqp' => (bool) null,
-        ]);
+        $this->json(['success' => true]);
     }
 }
