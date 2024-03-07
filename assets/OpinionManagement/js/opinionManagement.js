@@ -6,7 +6,6 @@ const handleChkCollapseChange = target => {
     }
 }
 
-
 const opinionHtml = opinion => {
     let htmlParsed = '<div class="opinion">'
     htmlParsed += `<div class="evaluation-title">
@@ -67,12 +66,63 @@ const showOpinions = registrationId => {
             if(error.message === 'Forbidden') message = 'Você não tem permissão para acessar este recurso.'
             if(error.message === 'Guest') message = 'É necessário estar autenticado.'
 
-            Swal.fire({
-                title: "Oops...",
-                text: "Aconteceu um problema!",
-                footer: `<code style="font-size:11px; color:#c93">${message}</code>`,
-                showConfirmButton: false,
-                showCloseButton: true,
-            })
+            errorAlert(message)
         })
+}
+
+const publishOpinions = target => {
+    const opportunityId = target.getAttribute('data-id');
+
+    Swal.fire({
+        title: "Essa ação é irreversível!",
+        html: "Ao clicar em <strong>'Publicar'</strong> você está publicando os pareceres para a visualização dos proponentes. Isso não pode ser desfeito.",
+        showConfirmButton: true,
+        showCloseButton: false,
+        showCancelButton: true,
+        confirmButtonText: 'Publicar',
+        cancelButtonText: 'Cancelar',
+    })
+        .then(result => {
+            if(result.isConfirmed)
+                fetch(MapasCulturais.baseURL + 'opinionManagement/publishOpinions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        id: opportunityId,
+                    }),
+                })
+                    .then(response => {
+                        if(response.redirected) throw new Error('Guest')
+                        if (!response.ok) throw new Error(response.statusText)
+                        return response.json()
+                    })
+                    .then(response => {
+                        console.log(response)
+                        Swal.fire({
+                            title: "Pareceres publicados com sucesso!",
+                            text: "Os pareceres desta inscrição agora encontram-se publicados.",
+                            showConfirmButton: false,
+                            showCloseButton: true,
+                        })
+                    })
+                    .catch(error => {
+                        let { message } = error
+                        if(error.message === 'Forbidden') message = 'Você não tem permissão para acessar este recurso.'
+                        if(error.message === 'Guest') message = 'É necessário estar autenticado.'
+
+                        errorAlert(message)
+                    })
+        })
+}
+
+const errorAlert = message => {
+    Swal.fire({
+        title: "Oops...",
+        text: "Aconteceu um problema!",
+        footer: `<code style="font-size:11px; color:#c93">${message}</code>`,
+        showConfirmButton: false,
+        showCloseButton: true,
+    })
 }
