@@ -35,7 +35,6 @@ class OpinionManagement extends Controller
          * @var $registration \MapasCulturais\Entities\Registration
          */
         $registration = $app->repo('Registration')->find($this->getData['id']);
-        $opinions = [];
         if($registration->canUser('view')) {
             $opinions = new EvaluationList($registration);
             $this->json($opinions);
@@ -54,9 +53,18 @@ class OpinionManagement extends Controller
 
         $opportunity = $app->repo('Opportunity')->find($this->postData['id']);
         if(!$opportunity->isUserAdmin($app->user)) {
+            $this->errorJson(['permission-denied'], 403);
             return;
         }
 
-//        dump($opportunity->);
+
+        $opportunity->setMetadata('publishedOpinions', 'true');
+        $error = $opportunity->save(true);
+        if($error) {
+            $this->errorJson(['error' => new \PDOException('Cannot save this data')], 500);
+            return;
+        }
+
+        $this->json(['success' => true]);
     }
 }

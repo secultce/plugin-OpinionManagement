@@ -145,3 +145,13 @@ div:has(>.showOpinion) {
     text-align: start;
     margin-top: 8px;
 }
+
+.opinions-section {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.opinions-section hr {
+    width: 100%;
+}
