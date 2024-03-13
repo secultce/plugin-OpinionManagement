@@ -9,7 +9,13 @@ const handleChkCollapseChange = target => {
 const opinionHtml = opinion => {
     let htmlParsed = '<div class="opinion">'
     htmlParsed += `<div class="evaluation-title">
-        <h3>Parecerista <a href="${opinion.agent.singleUrl}" target="_blank">${opinion.agent.name}</a></h3>
+        <h3>
+            Parecerista
+            ${opinion.agent.singleUrl ?
+                '<a href="'+opinion.agent.singleUrl+'" target="_blank">'+opinion.agent.name+'</a>' :
+                opinion.agent.name
+            }
+        </h3>
         <label for="chk-collapse-${opinion.id}"><div class="collapsible"></div></label>
         <p>Resultado da avaliação documental:<a href="${opinion.singleUrl}" class="criteria-status-${opinion.result < 0 ? 'invalid' : 'valid'}"></a></p>
     </div>
