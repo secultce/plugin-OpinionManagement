@@ -4,6 +4,7 @@ namespace OpinionManagement;
 
 use MapasCulturais\App,
     OpinionManagement\Controllers\OpinionManagement;
+use MapasCulturais\Entities\Notification;
 
 /**
  * @method part(string $string,  array $args = [])
@@ -132,9 +133,12 @@ class Plugin extends \MapasCulturais\Plugin
         });
 
         $app->hook('entity(Opportunity).publishRegistrations:before', function () {
-            if($this->autopublishOpinions == 'Sim')
+            if($this->autopublishOpinions == 'Sim') {
                 $this->setMetadata('publishedOpinions', 'true');
+            }
         });
+
+        // @todo: Colocar a notificação quando publicar automaticamente os pareceres
     }
 
     /**

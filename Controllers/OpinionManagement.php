@@ -4,6 +4,8 @@ namespace OpinionManagement\Controllers;
 
 use MapasCulturais\Controller,
     MapasCulturais\App;
+use MapasCulturais\Entities\Opportunity;
+use MapasCulturais\Entities\Notification;
 use OpinionManagement\Helpers\EvaluationList;
 
 class OpinionManagement extends Controller
@@ -65,6 +67,27 @@ class OpinionManagement extends Controller
             return;
         }
 
+        $this->notificateUsers($opportunity->id);
+
         $this->json(['success' => true]);
+    }
+
+    public function notificateUsers(int $opportunityId, bool $verifyPublishingOpinions = true): bool
+    {
+        $app = App::i();
+        $opportunity = $app->repo('Opportunity')->find($opportunityId);
+        if($verifyPublishingOpinions && $opportunity->publishedOpinions === 'false') {
+            return false;
+        }
+
+        $registrations = $app->repo('Registration')->findBy(['opportunity' => $opportunity]);
+        foreach ($registrations as $registration) {
+            $notification = new Notification();
+            $notification->user = $registration->owner->user;
+            $notification->message = "Sua inscrição <a style='font-weight:bold;' href='/inscricao/{$registration->id}'>{$registration->number}</a> da oportunidade <a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'/>{$opportunity->name}</a> está com os pareceres publicados.";
+            $notification->save(true);
+        }
+
+        return true;
     }
 }
