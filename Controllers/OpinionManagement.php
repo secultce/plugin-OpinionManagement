@@ -2,9 +2,9 @@
 
 namespace OpinionManagement\Controllers;
 
+use Doctrine\Common\Collections\Criteria;
 use MapasCulturais\Controller,
     MapasCulturais\App;
-use MapasCulturais\Entities\Opportunity;
 use MapasCulturais\Entities\Notification;
 use OpinionManagement\Helpers\EvaluationList;
 
@@ -80,12 +80,29 @@ class OpinionManagement extends Controller
             return false;
         }
 
-        $registrations = $app->repo('Registration')->findBy(['opportunity' => $opportunity]);
-        foreach ($registrations as $registration) {
+        set_time_limit(500);
+
+        $criteria = new Criteria();
+        $criteria->where($criteria->expr()->eq('opportunity', $opportunity));
+        $criteria->andWhere($criteria->expr()->gt('status', '0'));
+
+        $registrations = $app->repo('Registration')->matching($criteria);
+        $count = count($registrations);
+        foreach ($registrations as $i => $registration) {
             $notification = new Notification();
             $notification->user = $registration->owner->user;
-            $notification->message = "Sua inscrição <a style='font-weight:bold;' href='/inscricao/{$registration->id}'>{$registration->number}</a> da oportunidade <a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'/>{$opportunity->name}</a> está com os pareceres publicados.";
+            $notification->message =
+                "Sua inscrição " .
+                "<a style='font-weight:bold;' href='/inscricao/{$registration->id}'>" .
+                    $registration->number .
+                "</a>" .
+                " da oportunidade " .
+                "<a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'/>" .
+                    $opportunity->name .
+                "</a>" .
+                "está com os pareceres publicados.";
             $notification->save(true);
+            $app->log->debug("Notificação {$i}/{$count} enviada para o usuário {$registration->owner->user->id} ({$registration->owner->name})");
         }
 
         return true;

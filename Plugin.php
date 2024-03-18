@@ -133,12 +133,13 @@ class Plugin extends \MapasCulturais\Plugin
         });
 
         $app->hook('entity(Opportunity).publishRegistrations:before', function () {
-            if($this->autopublishOpinions == 'Sim') {
-                $this->setMetadata('publishedOpinions', 'true');
+            if($this->autopublishOpinions !== 'Sim') {
+                return;
             }
+            $this->setMetadata('publishedOpinions', 'true');
+            (new OpinionManagement())->notificateUsers($this->id);
         });
 
-        // @todo: Colocar a notificação quando publicar automaticamente os pareceres
     }
 
     /**
