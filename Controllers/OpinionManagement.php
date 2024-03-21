@@ -92,17 +92,14 @@ class OpinionManagement extends Controller
             $notification = new Notification();
             $notification->user = $registration->owner->user;
             $notification->message =
-                "Sua inscrição " .
-                "<a style='font-weight:bold;' href='/inscricao/{$registration->id}'>" .
-                    $registration->number .
-                "</a>" .
-                " da oportunidade " .
-                "<a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'/>" .
-                    $opportunity->name .
-                "</a>" .
-                "está com os pareceres publicados.";
+                sprintf(
+                    "Sua inscrição <a style='font-weight:bold;' href='/inscricao/{$registration->id}'>%s</a>" .
+                    " da oportunidade <a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'/>%s</a>está com os pareceres publicados.",
+                    $registration->number,
+                    $opportunity->name
+                );
             $notification->save(true);
-            $app->log->debug("Notificação {$i}/{$count} enviada para o usuário {$registration->owner->user->id} ({$registration->owner->name})");
+            $app->log->debug("Notificação ".($i+1)."/$count enviada para o usuário {$registration->owner->user->id} ({$registration->owner->name})");
         }
 
         return true;
