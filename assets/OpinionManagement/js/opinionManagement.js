@@ -132,3 +132,37 @@ const errorAlert = message => {
         showCloseButton: true,
     })
 }
+
+alertPublish = id => {
+    Swal.fire({
+        title: "Tem certeza?",
+        html: "<strong>ATENÇÃO</strong>, essa ação é uma ação irreversível. Caso a próxima fase seja uma prestação de contas, primeiro crie a fase de prestação de contas para só depois fazer a publicação.",
+        showConfirmButton: true,
+        showCloseButton: false,
+        showCancelButton: true,
+        confirmButtonText: 'Publicar',
+        cancelButtonText: 'Cancelar',
+    })
+        .then(function (result) {
+            if(!result.isConfirmed) {
+                MapasCulturais.Messages.alert("Ação cancelada!")
+                return
+            }
+
+            let loading = Swal.fire({
+                title: "Verificando se há notificações a serem enviadas.",
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            })
+
+            var url = MapasCulturais.createUrl('opportunity', 'publishRegistrations', [id]);
+            $.get(url, function() {
+                loading.close()
+                MapasCulturais.Messages.success('Resultado publicado');
+            })
+            location.reload();
+        });
+}
