@@ -108,7 +108,11 @@ class Plugin extends \MapasCulturais\Plugin
             /**
              * @todo: Refatorar quando for mudar para publicar pareceres técnicos
              */
-            if($opportunity->evaluationMethodConfiguration->type != 'documentary' || (!$opportunity->publishedRegistrations && !$opportunity->canUser('@control'))) {
+            if($opportunity->evaluationMethodConfiguration->type != 'documentary'
+                || (!$opportunity->publishedOpinions
+                    && !$opportunity->canUser('@control')
+                )
+            ) {
                 return;
             }
 
@@ -121,7 +125,7 @@ class Plugin extends \MapasCulturais\Plugin
             /**
              * @todo: Refatorar quando for mudar para publicar pareceres técnicos
              */
-            if(!$registration->opportunity->publishedRegistrations
+            if(!$registration->opportunity->publishedOpinions
                 || $registration->opportunity->evaluationMethodConfiguration->type != 'documentary'
             ) return;
             $this->part('OpinionManagement/user-btn-show-opinion.php', ['registration' => $registration]);
