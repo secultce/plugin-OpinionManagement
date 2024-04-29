@@ -39,11 +39,14 @@ class OpinionManagement extends Controller
         $registration = $app->repo('Registration')->find($this->getData['id']);
         if($registration->canUser('view')) {
             $opinions = new EvaluationList($registration);
-            $this->json($opinions);
+            $this->json([
+                'evaluationMethod' => (string) $registration->opportunity->evaluationMethodConfiguration->type,
+                'opinions' => $opinions,
+            ]);
             return;
         }
 
-        $this->errorJson(['permission-denied'], 403);
+        $this->json(['permission-denied'], 403);
     }
 
     public function POST_publishOpinions(): void
@@ -60,7 +63,7 @@ class OpinionManagement extends Controller
         }
 
 
-        $opportunity->setMetadata('publishedOpinions', 'true');
+        $opportunity->setMetadata('publishedOpinions', true);
         $error = $opportunity->save(true);
         if($error) {
             $this->errorJson(['error' => new \PDOException('Cannot save this data')], 500);
@@ -72,11 +75,11 @@ class OpinionManagement extends Controller
         $this->json(['success' => true]);
     }
 
-    public function notificateUsers(int $opportunityId, bool $verifyPublishingOpinions = true): bool
+    public static function notificateUsers(int $opportunityId, bool $verifyPublishingOpinions = true): bool
     {
         $app = App::i();
         $opportunity = $app->repo('Opportunity')->find($opportunityId);
-        if($verifyPublishingOpinions && $opportunity->publishedOpinions === 'false') {
+        if($verifyPublishingOpinions && $opportunity->publishedOpinions === false) {
             return false;
         }
 
