@@ -6,9 +6,10 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 ## [Unreleased]
 ### Adicionado
 - Adicionada notificação no painel de controle do proponente quando o parecer é publicado.
+- Adicionada publicação de parecer em avaliações técnicas.
 ### Correções
 - Retirado link fantasma para o perfil do parecerista na visão do proponente;
-- Corrigido bug em que botão "Visualizar Pareceres" não aparecia para o proponente, mesmo com os pareceres publicados.
+- Corrigido botão "Visualizar Pareceres" para aparecer ao proponente, somente quando pareceres estiverem publicados.
 
 ## [1.1.0] - 2024-03-13
 ### Adicionado
