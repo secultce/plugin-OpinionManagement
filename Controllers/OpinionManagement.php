@@ -2,8 +2,10 @@
 
 namespace OpinionManagement\Controllers;
 
+use Doctrine\Common\Collections\Criteria;
 use MapasCulturais\Controller,
     MapasCulturais\App;
+use MapasCulturais\Entities\Notification;
 use OpinionManagement\Helpers\EvaluationList;
 
 class OpinionManagement extends Controller
@@ -37,11 +39,14 @@ class OpinionManagement extends Controller
         $registration = $app->repo('Registration')->find($this->getData['id']);
         if($registration->canUser('view')) {
             $opinions = new EvaluationList($registration);
-            $this->json($opinions);
+            $this->json([
+                'evaluationMethod' => (string) $registration->opportunity->evaluationMethodConfiguration->type,
+                'opinions' => $opinions,
+            ]);
             return;
         }
 
-        $this->errorJson(['permission-denied'], 403);
+        $this->json(['permission-denied'], 403);
     }
 
     public function POST_publishOpinions(): void
@@ -58,13 +63,48 @@ class OpinionManagement extends Controller
         }
 
 
-        $opportunity->setMetadata('publishedOpinions', 'true');
+        $opportunity->setMetadata('publishedOpinions', true);
         $error = $opportunity->save(true);
         if($error) {
             $this->errorJson(['error' => new \PDOException('Cannot save this data')], 500);
             return;
         }
 
+        $this->notificateUsers($opportunity->id);
+
         $this->json(['success' => true]);
+    }
+
+    public static function notificateUsers(int $opportunityId, bool $verifyPublishingOpinions = true): bool
+    {
+        $app = App::i();
+        $opportunity = $app->repo('Opportunity')->find($opportunityId);
+        if($verifyPublishingOpinions && $opportunity->publishedOpinions === false) {
+            return false;
+        }
+
+        set_time_limit(500);
+
+        $criteria = new Criteria();
+        $criteria->where($criteria->expr()->eq('opportunity', $opportunity));
+        $criteria->andWhere($criteria->expr()->gt('status', '0'));
+
+        $registrations = $app->repo('Registration')->matching($criteria);
+        $count = count($registrations);
+        foreach ($registrations as $i => $registration) {
+            $notification = new Notification();
+            $notification->user = $registration->owner->user;
+            $notification->message =
+                sprintf(
+                    "Sua inscrição <a style='font-weight:bold;' href='/inscricao/{$registration->id}'>%s</a>" .
+                    " da oportunidade <a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'/>%s</a>está com os pareceres publicados.",
+                    $registration->number,
+                    $opportunity->name
+                );
+            $notification->save(true);
+            $app->log->debug("Notificação ".($i+1)."/$count enviada para o usuário {$registration->owner->user->id} ({$registration->owner->name})");
+        }
+
+        return true;
     }
 }

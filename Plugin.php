@@ -4,6 +4,8 @@ namespace OpinionManagement;
 
 use MapasCulturais\App,
     OpinionManagement\Controllers\OpinionManagement;
+use MapasCulturais\Entities\Opportunity as OpportunityEntity;
+use MapasCulturais\Entities\Registration;
 
 /**
  * @method part(string $string,  array $args = [])
@@ -38,27 +40,20 @@ class Plugin extends \MapasCulturais\Plugin
             );
         });
 
-        $app->hook('template(opportunity.edit.registration-config):after', function () use ($app) {
+        $plugin = $this;
+
+        $app->hook('template(opportunity.edit.evaluations-config):begin', function () use ($app, $plugin) {
             $opportunity = $this->controller->requestedEntity;
-            /**
-             * @todo: Refatorar quando for mudar para publicar pareceres técnicos
-             */
-            if($opportunity->evaluationMethodConfiguration->type != 'documentary') {
-                return;
+
+            if($plugin::isEvaluationMethodValid($opportunity)) {
+                $this->part('OpinionManagement/selection-autopublish', ['opportunity' => $opportunity]);
             }
-            $this->part('OpinionManagement/selection-autopublish', ['opportunity' => $opportunity]);
         });
 
-        $app->hook('template(opportunity.single.registration-list-header):end', function() use($app) {
+        $app->hook('template(opportunity.single.registration-list-header):end', function() use($app, $plugin) {
             $opportunity = $this->controller->requestedEntity;
-            /**
-             * @todo: Refatorar quando for mudar para publicar pareceres técnicos
-             */
-            if($opportunity->evaluationMethodConfiguration->type != 'documentary') {
-                return;
-            }
 
-            if($opportunity->canUser('@control')) {
+            if($plugin::isEvaluationMethodValid($opportunity) && $opportunity->canUser('@control')) {
                 $this->part('OpinionManagement/admin-registrations-table-column.php');
                 $app->view->enqueueScript(
                     'app',
@@ -73,68 +68,53 @@ class Plugin extends \MapasCulturais\Plugin
         });
 
         $app->hook('template(opportunity.single.user-registration-table--registration--status):end', function ($registration, $opportunity) use ($app) {
-            /**
-             * @todo: Refatorar quando for mudar para publicar pareceres técnicos
-             */
-            if($opportunity->publishedOpinions != 'true') {
-                return;
-            }
-
-            if($registration->canUser('@control')) {
+            if($opportunity->publishedOpinions === true && $registration->canUser('@control')) {
                 $this->part('OpinionManagement/user-btn-show-opinion.php', ['registration' => $registration]);
             }
         });
 
-        $app->hook('template(opportunity.single.opportunity-registrations--tables):begin', function () use ($app) {
+        $app->hook('template(opportunity.single.opportunity-registrations--tables):begin', function () use ($app, $plugin) {
             $opportunity = $this->controller->requestedEntity;
-            /**
-             * @todo: Refatorar quando for mudar para publicar pareceres técnicos
-             */
-            if($opportunity->evaluationMethodConfiguration->type != 'documentary'
-                || $opportunity->autopublishOpinions !== 'Não'
-                || $opportunity->publishedOpinions == 'true'
+            if($plugin::isEvaluationMethodValid($opportunity)
+                && $opportunity->autopublishOpinions !== 'Sim'
+                && !$opportunity->publishedOpinions
             ) {
-                return;
+                $this->part('OpinionManagement/admin-btn-publish-opinions.php', ['opportunity' => $opportunity]);
             }
-
-            $this->part('OpinionManagement/admin-btn-publish-opinions.php', ['opportunity' => $opportunity]);
         });
 
-        $app->hook('template(registration.view.header-fieldset):after', function() use($app) {
+        $app->hook('template(registration.view.header-fieldset):after', function() use($app, $plugin) {
             $registration = $this->controller->requestedEntity;
             $opportunity = $registration->opportunity;
 
-            /**
-             * @todo: Refatorar quando for mudar para publicar pareceres técnicos
-             */
-            if($opportunity->evaluationMethodConfiguration->type != 'documentary' || (!$opportunity->publishedRegistrations && !$opportunity->canUser('@control'))) {
-                return;
-            }
-
-            if($registration->canUser('@control')) {
+            if($plugin::isEvaluationMethodValid($opportunity)
+                && $opportunity->publishedOpinions
+                && $opportunity->canUser('@control')
+            ) {
                 $this->part('OpinionManagement/user-btn-show-opinion.php');
             }
         });
 
-        $app->hook('template(panel.<<registrations|index>>.panel-registration):end', function ($registration) use ($app) {
-            /**
-             * @todo: Refatorar quando for mudar para publicar pareceres técnicos
-             */
-            if(!$registration->opportunity->publishedRegistrations
-                || $registration->opportunity->evaluationMethodConfiguration->type != 'documentary'
-            ) return;
-            $this->part('OpinionManagement/user-btn-show-opinion.php', ['registration' => $registration]);
-            $app->view->enqueueScript(
-                'app',
-                'opinion-management',
-                'OpinionManagement/js/opinionManagement.js'
-            );
+        $app->hook('template(panel.<<registrations|index>>.panel-registration):end', function (Registration $registration) use ($app,$plugin) {
+            if($registration->opportunity->publishedOpinions
+                && $plugin::isEvaluationMethodValid($registration->opportunity)
+            ) {
+                $this->part('OpinionManagement/user-btn-show-opinion.php', ['registration' => $registration]);
+                $app->view->enqueueScript(
+                    'app',
+                    'opinion-management',
+                    'OpinionManagement/js/opinionManagement.js'
+                );
+            }
         });
 
         $app->hook('entity(Opportunity).publishRegistrations:before', function () {
-            if($this->autopublishOpinions == 'Sim')
-                $this->setMetadata('publishedOpinions', 'true');
+            if($this->autopublishOpinions === 'Sim') {
+                $this->setMetadata('publishedOpinions', true);
+                OpinionManagement::notificateUsers($this->id);
+            }
         });
+
     }
 
     /**
@@ -155,11 +135,17 @@ class Plugin extends \MapasCulturais\Plugin
             'required' => true,
         ]);
         $this->registerOpportunityMetadata('publishedOpinions', [
-            'type' => 'select',
+            'type' => 'boolean',
             'label' => \MapasCulturais\i::__('Pareceres publicados'),
-            'default_value' => 'false',
-            'options' => ['true', 'false'],
+            'default_value' => false,
+            'options' => [true, false],
             'required' => true,
         ]);
+    }
+
+    public static function isEvaluationMethodValid(OpportunityEntity $opportunity): bool
+    {
+        return $opportunity->evaluationMethodConfiguration->type == 'documentary'
+            || $opportunity->evaluationMethodConfiguration->type == 'technical';
     }
 }
