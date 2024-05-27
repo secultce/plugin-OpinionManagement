@@ -32,10 +32,9 @@ const opinionHtml = (opinion, evaluationMethod) => {
                 evaluationHtml += `<div class="criteria-fields">
                     <h5>${criteria.label}</h5>
                     <p class="criteria-status-${criteria.evaluation === '' ? 'pending' : criteria.evaluation}"></p>
-                    <p class="opinion-evaluation-obs">${criteria['obs_items']}</p>
+                    ${criteria.evaluation === 'invalid' ? `<p class="opinion-evaluation-obs">${criteria['obs_items']}</p>` : ''}
                     <p class="opinion-evaluation-obs">${criteria['obs']}</p>
                 </div>`
-                // htmlParsed += criteria.evaluation === 'invalid' ? `<p class="opinion-evaluation-obs">${criteria['obs_items']}</p>` : ''
             }
         }
         if(evaluationMethod === 'technical') {
