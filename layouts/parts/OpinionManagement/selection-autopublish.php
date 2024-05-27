@@ -1,14 +1,8 @@
-<style>
-    #opinions-config:has(~ #evaluations-config[style="display: none;"]) {
-        display: none;
-    }
-</style>
-
 <div id="opinions-config" class="registration-fieldset">
     <h4>Publicação de Pareceres</h4>
     <p>Deseja que os pareceres desta fase/oportunidade sejam publicados para os proponentes automaticamente ao publicar os resultados?</p>
     <span
-        class="js-editable editable editable-click editable-unsaved"
+        class="js-editable editable editable-click"
         data-edit="autopublishOpinions"
         data-original-title="Publicar pareceres automaticamente"
         data-value="<?= /** @var \MapasCulturais\Entities\Opportunity $opportunity */
