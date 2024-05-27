@@ -42,7 +42,7 @@ class Plugin extends \MapasCulturais\Plugin
 
         $plugin = $this;
 
-        $app->hook('template(opportunity.edit.registration-config):after', function () use ($app, $plugin) {
+        $app->hook('template(opportunity.edit.evaluations-config):begin', function () use ($app, $plugin) {
             $opportunity = $this->controller->requestedEntity;
 
             if($plugin::isEvaluationMethodValid($opportunity)) {
