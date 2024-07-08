@@ -10,7 +10,8 @@ $(document).ready(() => {
         })
     }
 
-    // Esse observer observando mudanças no DOM da tabela de inscritos e chama a função que atribui o callback ao evento de clique aos botões de visualizar parecer
+    // Esse observer observando mudanças no DOM da tabela de inscritos
+    // e chama a função que atribui o callback ao evento de clique aos botões de visualizar parecer
     const observer = new MutationObserver(mutations => {
         if(document.querySelectorAll('.showOpinion').length > 0) {
             waitLoadRegistrationList().then(showOpinionButtons => {

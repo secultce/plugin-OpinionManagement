@@ -1,4 +1,5 @@
 const handleChkCollapseChange = (target, evaluationMethod) => {
+    $('.collapsible').each((_,el) => {el.classList.toggle('collapsible-hidden')});
     if(evaluationMethod === 'technical') {
         return
     }
@@ -18,7 +19,7 @@ const opinionHtml = (opinion, evaluationMethod) => {
                    class="criteria-status-${result < 0 ? 'invalid' : 'valid'}"></a>
             </p>`;
         if (evaluationMethod === 'technical')
-            return `<p>Nota da avaliação técnica:<a href="${opinionUrl}">${result}</a></p>`
+            return `<p>Nota da avaliação técnica: <a href="${opinionUrl}">${result}</a></p>`
     }
 
     const evaluationToHtml = (opinion, evaluationMethod) => {
@@ -55,8 +56,24 @@ const opinionHtml = (opinion, evaluationMethod) => {
                     opinion.agent.name
                 }
             </h3>
-            <label for="chk-collapse-${opinion.id}"><div class="collapsible"></div></label>
-            ${resultHtml(opinion.singleUrl, opinion.result, evaluationMethod)}
+            ${opinion.result === null
+                ? '<div>Avaliação <span class="criteria-status-pending"></span></div>'
+                : `<label for="chk-collapse-${opinion.id}">
+                    <div class="collapsible">Exibir
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="6.293 8.293 11.414 7.414">
+                            <path fill="currentColor" fill-rule="evenodd" d="M7 9a1 1 0 0 0-.707 1.707l5 5a1 1 0 0 0 1.414 0l5-5A1 1 0 0 0 17 9z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="collapsible collapsible-hidden">Esconder
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="6.293 8.293 11.414 7.414">
+                            <g transform="rotate(180 12 12)">
+                                <path fill="currentColor" fill-rule="evenodd" d="M7 9a1 1 0 0 0-.707 1.707l5 5a1 1 0 0 0 1.414 0l5-5A1 1 0 0 0 17 9z" clip-rule="evenodd"/>
+                            </g>
+                        </svg>
+                    </div>
+                </label>`
+                + resultHtml(opinion.singleUrl, opinion.result, evaluationMethod)
+            }
         </div>
         <input type="checkbox" id="chk-collapse-${opinion.id}" class="chk-collapse" name="chk-collapse" onchange="handleChkCollapseChange(this, '${evaluationMethod}')">
         ${evaluationToHtml(opinion, evaluationMethod)}
@@ -78,7 +95,8 @@ const showOpinions = registrationId => {
             return response.json()
         })
         .then(({opinions, evaluationMethod}) => {
-            // @todo: Em versões futuras fazer alteração para mostrar quem são os pareceristas com pendências na avaliação
+            console.log(opinions)
+            // Caso não tenham avaliadores atribuídos mostrará este alerta
             if(opinions.length === 0)
                 return Swal.fire({
                     title: "Não há avaliações!",
