@@ -95,14 +95,12 @@ const showOpinions = registrationId => {
             return response.json()
         })
         .then(({opinions, evaluationMethod}) => {
-            console.log(opinions)
             // Caso não tenham avaliadores atribuídos mostrará este alerta
             if(opinions.length === 0)
                 return Swal.fire({
                     title: "Não há avaliações!",
                     text: "As avaliações desta inscrição ainda não foram iniciadas."
                 })
-
 
             const html = `<div>${opinions.map(opinion => opinionHtml(opinion, evaluationMethod)).join('')}</div>`;
 
