@@ -29,14 +29,12 @@ class OpinionManagement extends Controller
     public function GET_opinions(): void
     {
         $app = App::i();
-        if($app->user->is('guest')) {
-            $app->redirect($app->getBaseUrl());
-        }
+        $this->requireAuthentication();
 
         /**
          * @var $registration \MapasCulturais\Entities\Registration
          */
-        $registration = $app->repo('Registration')->find($this->getData['id']);
+        $registration = $app->repo('Registration')->find($this->data['id']);
         if($registration->canUser('view')) {
             $opinions = new EvaluationList($registration);
             $this->json([

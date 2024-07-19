@@ -61,20 +61,22 @@ div:has(>.showOpinion) {
     grid-template-columns: 3fr 1fr;
     justify-content: space-between;
 }
-.opinion .evaluation-title .collapsible {
-    color:#117C83;
+.opinion .evaluation-title label {
+    cursor: pointer;
     position: relative;
 }
-.opinion .evaluation-title .collapsible:after {
-    content: 'Exibir \2304';
-    cursor: pointer;
+.opinion .evaluation-title .collapsible {
+    color:#117C83;
     position: absolute;
+    font-weight: 700;
     right: 0;
+    text-wrap: nowrap;
 }
-.opinion:has(.chk-collapse:checked) .evaluation-title .collapsible:after {
-    content: 'Esconder \2303';
-    /*color: #117C83;*/
+.opinion .evaluation-title .collapsible svg {
+    width: .8em;
+    padding-block: 2px;
 }
+.opinion .evaluation-title .collapsible-hidden {display: none}
 .opinion .chk-collapse:not(:checked) ~ .criteria-fields {
     max-height: 0;
     padding: 0;
