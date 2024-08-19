@@ -3,6 +3,10 @@ Todas as mudanças relevantes serão documentadas nesse arquivo.
 
 O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0), e esse projeto adere ao [Semantic Versionning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2024-08-19
+### Adicionado
+- Agora as avaliações não iniciadas também são listadas para o administrador.
+
 ## [1.1.1] - 2024-05-27
 ### Adicionado
 - Adicionada notificação no painel de controle do proponente quando o parecer é publicado.
