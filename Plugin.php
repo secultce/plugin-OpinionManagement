@@ -78,6 +78,7 @@ class Plugin extends \MapasCulturais\Plugin
             if($plugin::isEvaluationMethodValid($opportunity)
                 && $opportunity->autopublishOpinions !== 'Sim'
                 && !$opportunity->publishedOpinions
+                && $opportunity->canUser('@control')
             ) {
                 $this->part('OpinionManagement/admin-btn-publish-opinions.php', ['opportunity' => $opportunity]);
             }
