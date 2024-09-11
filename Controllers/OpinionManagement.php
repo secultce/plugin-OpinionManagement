@@ -5,6 +5,8 @@ namespace OpinionManagement\Controllers;
 use Doctrine\Common\Collections\Criteria;
 use MapasCulturais\Controller,
     MapasCulturais\App;
+use MapasCulturais\Entities\Opportunity;
+use MapasCulturais\Entities\EvaluationMethodConfigurationMeta;
 use MapasCulturais\Entities\Notification;
 use OpinionManagement\Helpers\EvaluationList;
 
@@ -37,10 +39,12 @@ class OpinionManagement extends Controller
         $registration = $app->repo('Registration')->find($this->data['id']);
         if($registration->canUser('view')) {
             $opinions = new EvaluationList($registration);
-            $this->json([
+            $data = [
                 'evaluationMethod' => (string) $registration->opportunity->evaluationMethodConfiguration->type,
+                'criteria' => self::getCriteriaMeta($registration->opportunity),
                 'opinions' => $opinions,
-            ]);
+            ];
+            $this->json($data);
             return;
         }
 
@@ -104,5 +108,20 @@ class OpinionManagement extends Controller
         }
 
         return true;
+    }
+
+    public static function getCriteriaMeta(Opportunity $opportunity): array
+    {
+        $criteria = App::i()->repo(EvaluationMethodConfigurationMeta::class)->findOneBy([
+            'key' => 'criteria',
+            'owner' => $opportunity->evaluationMethodConfiguration
+        ]);
+        $criteria = json_decode($criteria->value, true);
+        $finalCriteria = [];
+        array_walk($criteria, function ($criterion) use (&$finalCriteria){
+            $finalCriteria[$criterion['id']] = $criterion['title'];
+        });
+
+        return $finalCriteria;
     }
 }
