@@ -3,6 +3,11 @@ Todas as mudanças relevantes serão documentadas nesse arquivo.
 
 O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0), e esse projeto adere ao [Semantic Versionning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2024-09-13
+### Adicionado
+- Adicionada seção que mostra a nota final com as políticas afirmativas discriminadas.
+- Adicionadas notas individuais dos critérios a avaliação.
+
 ## [1.2.0] - 2024-08-19
 ### Adicionado
 - Agora as avaliações não iniciadas também são listadas para o administrador.
