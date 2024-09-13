@@ -215,17 +215,21 @@ const errorAlert = message => {
 
 const consolidatedResultHtml = (registration, evaluationMethod, appliedAffirmativePolicy) => {
     if (evaluationMethod === 'technical' && appliedAffirmativePolicy) {
-        return `<div class="opinion">
+        let html = `<div class="opinion">
             <div class="evaluation-title" style="display: block">
                 <p>Média das avaliações: <strong>${appliedAffirmativePolicy.raw}</strong></p>
-                <br>
-                <p>Políticas afirmativas aplicadas:</p>
+                <br>`;
+
+        if (appliedAffirmativePolicy.rules.length > 0) {
+            html += `<p>Políticas afirmativas aplicadas:</p>
                 <ul>
                     ${appliedAffirmativePolicy.rules
                         .map(policy => `<li>${policy.field.title} &#10141; <strong>${policy.value}</strong> (+${policy.percentage} %)</li>`)
                         .join('')}
-                </ul>
-                <p>Nota final consolidada: <strong>${registration.evaluationResultValue}</strong></p>
+                </ul>`;
+        }
+
+        return html + `<p>Nota final consolidada: <strong>${registration.evaluationResultValue}</strong></p>
             </div>
         </div>`;
     }
