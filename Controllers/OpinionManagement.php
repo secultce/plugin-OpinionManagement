@@ -3,18 +3,21 @@
 namespace OpinionManagement\Controllers;
 
 use Doctrine\Common\Collections\Criteria;
+use EvaluationMethodTechnical\Plugin as EvaluationTechnicalPlugin;
 use MapasCulturais\Controller,
     MapasCulturais\App;
 use MapasCulturais\Entities\Opportunity;
 use MapasCulturais\Entities\EvaluationMethodConfigurationMeta;
 use MapasCulturais\Entities\Notification;
+use MapasCulturais\Entities\Registration;
+use MapasCulturais\Entities\RegistrationEvaluation;
 use OpinionManagement\Helpers\EvaluationList;
 
 class OpinionManagement extends Controller
 {
     public function GET_index(): void
     {
-        $app = App::i();
+        $app = (new App)->i();
 
         if(!$app->user->is('superAdmin')) {
             $this->layout = 'error-404';
@@ -30,21 +33,25 @@ class OpinionManagement extends Controller
 
     public function GET_opinions(): void
     {
-        $app = App::i();
+        $app = (new App())->i();
         $this->requireAuthentication();
 
         /**
-         * @var $registration \MapasCulturais\Entities\Registration
+         * @var $registration Registration
          */
-        $registration = $app->repo('Registration')->find($this->data['id']);
-        if($registration->canUser('view')) {
+        $registration = $app->repo(Registration::class)->find($this->data['id']);
+        if ($registration->canUser('view')) {
+            $evaluationsAvg = self::getEvaluationsAvg($registration);
+            (new EvaluationTechnicalPlugin())->applyAffirmativePolicies($evaluationsAvg, $registration);
+
             $opinions = new EvaluationList($registration);
-            $data = [
+            $this->json([
+                'appliedAffirmativePolicy' => $registration->appliedAffirmativePolicy ?? false,
                 'evaluationMethod' => (string) $registration->opportunity->evaluationMethodConfiguration->type,
                 'criteria' => self::getCriteriaMeta($registration->opportunity),
                 'opinions' => $opinions,
-            ];
-            $this->json($data);
+                'registration' => $registration,
+            ]);
             return;
         }
 
@@ -53,7 +60,7 @@ class OpinionManagement extends Controller
 
     public function POST_publishOpinions(): void
     {
-        $app = App::i();
+        $app = (new App)->i();
         if($app->user->is('guest')) {
             $app->redirect($app->getBaseUrl());
         }
@@ -64,10 +71,10 @@ class OpinionManagement extends Controller
             return;
         }
 
-
-        $opportunity->setMetadata('publishedOpinions', true);
-        $error = $opportunity->save(true);
-        if($error) {
+        try {
+            $opportunity->setMetadata('publishedOpinions', true);
+            $opportunity->save(true);
+        } catch (\Exception $e) {
             $this->errorJson(['error' => new \PDOException('Cannot save this data')], 500);
             return;
         }
@@ -79,7 +86,7 @@ class OpinionManagement extends Controller
 
     public static function notificateUsers(int $opportunityId, bool $verifyPublishingOpinions = true): bool
     {
-        $app = App::i();
+        $app = (new App)->i();
         $opportunity = $app->repo('Opportunity')->find($opportunityId);
         if($verifyPublishingOpinions && $opportunity->publishedOpinions === false) {
             return false;
@@ -96,13 +103,12 @@ class OpinionManagement extends Controller
         foreach ($registrations as $i => $registration) {
             $notification = new Notification();
             $notification->user = $registration->owner->user;
-            $notification->message =
-                sprintf(
-                    "Sua inscrição <a style='font-weight:bold;' href='/inscricao/{$registration->id}'>%s</a>" .
-                    " da oportunidade <a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'/>%s</a>está com os pareceres publicados.",
-                    $registration->number,
-                    $opportunity->name
-                );
+            $notification->message = sprintf(
+                "Sua inscrição <a style='font-weight:bold;' href='/inscricao/{$registration->id}'>%s</a>" .
+                " da oportunidade <a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'/>%s</a>está com os pareceres publicados.",
+                $registration->number,
+                $opportunity->name
+            );
             $notification->save(true);
             $app->log->debug("Notificação ".($i+1)."/$count enviada para o usuário {$registration->owner->user->id} ({$registration->owner->name})");
         }
@@ -112,16 +118,31 @@ class OpinionManagement extends Controller
 
     public static function getCriteriaMeta(Opportunity $opportunity): array
     {
-        $criteria = App::i()->repo(EvaluationMethodConfigurationMeta::class)->findOneBy([
+        $app = (new App)->i();
+        $criteria = $app->repo(EvaluationMethodConfigurationMeta::class)->findOneBy([
             'key' => 'criteria',
-            'owner' => $opportunity->evaluationMethodConfiguration
+            'owner' => $opportunity->evaluationMethodConfiguration,
         ]);
         $criteria = json_decode($criteria->value, true);
         $finalCriteria = [];
         array_walk($criteria, function ($criterion) use (&$finalCriteria){
-            $finalCriteria[$criterion['id']] = $criterion['title'];
+            $finalCriteria[$criterion['id']] = $criterion;
         });
 
         return $finalCriteria;
+    }
+
+    public static function getEvaluationsAvg(Registration $registration): float
+    {
+        $app = (new App)->i();
+
+        $evaluations = $app->repo(RegistrationEvaluation::class)->findBy(['registration' => $registration]);
+        $evaluationsAvg = 0;
+        foreach ($evaluations as $evaluation) {
+            $evaluationsAvg += (float) $evaluation->result;
+        }
+        $evaluationsAvg /= count($evaluations); // Necessário utilizar a média das avaliações para aplicar as políticas afirmativas
+
+        return $evaluationsAvg;
     }
 }
