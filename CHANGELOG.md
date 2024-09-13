@@ -5,7 +5,7 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 
 ## [1.2.1] - 2024-09-13
 ### Adicionado
-- Adicionada seção que mostra a nota final com as políticas afirmativas discriminadas.
+- Adicionada seção que mostra a nota final com as políticas afirmativas distinguidas.
 - Adicionadas notas individuais dos critérios a avaliação.
 
 ## [1.2.0] - 2024-08-19
