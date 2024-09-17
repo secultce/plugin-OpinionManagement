@@ -17,7 +17,7 @@ class OpinionManagement extends Controller
 {
     public function GET_index(): void
     {
-        $app = (new App)->i();
+        $app = App::i();
 
         if(!$app->user->is('superAdmin')) {
             $this->layout = 'error-404';
@@ -33,7 +33,7 @@ class OpinionManagement extends Controller
 
     public function GET_opinions(): void
     {
-        $app = (new App())->i();
+        $app = App::i();
         $this->requireAuthentication();
 
         /**
@@ -60,7 +60,7 @@ class OpinionManagement extends Controller
 
     public function POST_publishOpinions(): void
     {
-        $app = (new App)->i();
+        $app = App::i();
         if($app->user->is('guest')) {
             $app->redirect($app->getBaseUrl());
         }
@@ -86,7 +86,7 @@ class OpinionManagement extends Controller
 
     public static function notificateUsers(int $opportunityId, bool $verifyPublishingOpinions = true): bool
     {
-        $app = (new App)->i();
+        $app = App::i();
         $opportunity = $app->repo('Opportunity')->find($opportunityId);
         if($verifyPublishingOpinions && $opportunity->publishedOpinions === false) {
             return false;
@@ -118,7 +118,7 @@ class OpinionManagement extends Controller
 
     public static function getCriteriaMeta(Opportunity $opportunity): array
     {
-        $app = (new App)->i();
+        $app = App::i();
         $criteria = $app->repo(EvaluationMethodConfigurationMeta::class)->findOneBy([
             'key' => 'criteria',
             'owner' => $opportunity->evaluationMethodConfiguration,
@@ -134,7 +134,7 @@ class OpinionManagement extends Controller
 
     public static function getEvaluationsAvg(Registration $registration): float
     {
-        $app = (new App)->i();
+        $app = App::i();
 
         $evaluations = $app->repo(RegistrationEvaluation::class)->findBy(['registration' => $registration]);
         $evaluationsAvg = 0;
