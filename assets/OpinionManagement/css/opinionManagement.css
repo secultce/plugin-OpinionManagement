@@ -90,6 +90,10 @@ div:has(>.showOpinion) {
     display: initial;
 }
 
+.opinion .criteria-fields {
+    text-align: justify;
+}
+
 .opinion .chk-collapse {display: none}
 
 .opinion .evaluation-title h3,
