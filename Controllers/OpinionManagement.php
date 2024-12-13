@@ -66,7 +66,8 @@ class OpinionManagement extends Controller
         }
 
         $opportunity = $app->repo('Opportunity')->find($this->postData['id']);
-        if(!$opportunity->isUserAdmin($app->user)) {
+        
+        if(!$opportunity->canUser('@control', $app->user)) {
             $this->errorJson(['permission-denied'], 403);
             return;
         }
