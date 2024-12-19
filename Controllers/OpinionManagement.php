@@ -124,7 +124,7 @@ class OpinionManagement extends Controller
             'key' => 'criteria',
             'owner' => $opportunity->evaluationMethodConfiguration,
         ]);
-        $criteria = json_decode($criteria->value, true);
+        $criteria = json_decode($criteria->value, true) ?? [];
         $finalCriteria = [];
         array_walk($criteria, function ($criterion) use (&$finalCriteria){
             $finalCriteria[$criterion['id']] = $criterion;
