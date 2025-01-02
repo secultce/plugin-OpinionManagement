@@ -45,13 +45,19 @@ class OpinionManagement extends Controller
             (new EvaluationTechnicalPlugin())->applyAffirmativePolicies($evaluationsAvg, $registration);
 
             $opinions = new EvaluationList($registration);
-            $this->json([
+
+            $data = [
                 'appliedAffirmativePolicy' => $registration->appliedAffirmativePolicy ?? false,
                 'evaluationMethod' => (string) $registration->opportunity->evaluationMethodConfiguration->type,
-                'criteria' => self::getCriteriaMeta($registration->opportunity),
                 'opinions' => $opinions,
                 'registration' => $registration,
-            ]);
+            ];
+
+            if ('technical' === $data['evaluationMethod']) {
+                $data['criteria'] = self::getCriteriaMeta($registration->opportunity);
+            }
+
+            $this->json($data);
             return;
         }
 
