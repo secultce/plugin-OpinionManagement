@@ -112,7 +112,7 @@ class OpinionManagement extends Controller
             $notification->user = $registration->owner->user;
             $notification->message = sprintf(
                 "Sua inscrição <a style='font-weight:bold;' href='/inscricao/{$registration->id}'>%s</a>" .
-                " da oportunidade <a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'/>%s</a>está com os pareceres publicados.",
+                " da oportunidade <a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'>%s</a> está com os pareceres publicados.",
                 $registration->number,
                 $opportunity->name
             );
