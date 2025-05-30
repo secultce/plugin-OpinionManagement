@@ -1,17 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpinionManagement\Controllers;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use EvaluationMethodTechnical\Plugin as EvaluationTechnicalPlugin;
-use MapasCulturais\Controller,
-    MapasCulturais\App;
-use MapasCulturais\Entities\Opportunity;
+use MapasCulturais\App;
+use MapasCulturais\Controller;
 use MapasCulturais\Entities\EvaluationMethodConfigurationMeta;
 use MapasCulturais\Entities\Notification;
+use MapasCulturais\Entities\Opportunity;
 use MapasCulturais\Entities\Registration;
 use MapasCulturais\Entities\RegistrationEvaluation;
+use MapasCulturais\Exceptions\PermissionDenied;
+use MapasCulturais\Exceptions\WorkflowRequest;
 use OpinionManagement\Helpers\EvaluationList;
+use MapasCulturais\Services\AmqpQueueService;
 
 class OpinionManagement extends Controller
 {
@@ -72,9 +78,9 @@ class OpinionManagement extends Controller
         }
 
         $opportunity = $app->repo('Opportunity')->find($this->postData['id']);
-        
+
         if(!$opportunity->canUser('@control', $app->user)) {
-            $this->errorJson(['permission-denied'], 403);
+            $this->json(['permission-denied'], 403);
             return;
         }
 
@@ -82,7 +88,7 @@ class OpinionManagement extends Controller
             $opportunity->setMetadata('publishedOpinions', true);
             $opportunity->save(true);
         } catch (\Exception $e) {
-            $this->errorJson(['error' => new \PDOException('Cannot save this data')], 500);
+            $this->json(['error' => new \PDOException('Cannot save this data', 0, $e)], 500);
             return;
         }
 
@@ -91,6 +97,10 @@ class OpinionManagement extends Controller
         $this->json(['success' => true]);
     }
 
+    /**
+     * @throws WorkflowRequest
+     * @throws PermissionDenied
+     */
     public static function notificateUsers(int $opportunityId, bool $verifyPublishingOpinions = true): bool
     {
         $app = App::i();
@@ -106,21 +116,73 @@ class OpinionManagement extends Controller
         $criteria->andWhere($criteria->expr()->gt('status', '0'));
 
         $registrations = $app->repo('Registration')->matching($criteria);
+
+        self::sendToMailQueue($registrations);
+
+        $app->log->debug("Processo de envio de emails enviado para a fila.");
+
         $count = count($registrations);
+        $failed = 0;
+        $succeed = 0;
         foreach ($registrations as $i => $registration) {
-            $notification = new Notification();
-            $notification->user = $registration->owner->user;
-            $notification->message = sprintf(
-                "Sua inscrição <a style='font-weight:bold;' href='/inscricao/{$registration->id}'>%s</a>" .
-                " da oportunidade <a style='font-weight:bold;' href='/oportunidade/{$opportunity->id}'>%s</a> está com os pareceres publicados.",
-                $registration->number,
-                $opportunity->name
-            );
-            $notification->save(true);
-            $app->log->debug("Notificação ".($i+1)."/$count enviada para o usuário {$registration->owner->user->id} ({$registration->owner->name})");
+            try {
+                self::creteAppNotification($registration);
+                $succeed++;
+                $app->log->debug("Notificação ".($i+1)."/$count enviada para o usuário {$registration->owner->user->id} ({$registration->owner->name})");
+            } catch (\Exception $e) {
+                $failed++;
+                $app->log->error("Notificação ".($i+1)."/$count não enviada ao usuário {$registration->owner->user->id} ({$registration->owner->name})");
+            }
         }
 
+        $app->log->debug("Notificações enviadas!\nTotal: $count\nFalhas: $failed\nSucesso: $succeed");
+
         return true;
+    }
+
+    /**
+     * @throws WorkflowRequest
+     * @throws PermissionDenied
+     */
+    private static function creteAppNotification(Registration $registration): void
+    {
+        $notification = new Notification();
+        $notification->user = $registration->owner->user;
+        $notification->message = sprintf(
+            "Sua inscrição <a style='font-weight:bold;' href='/inscricao/{$registration->id}'>%s</a>" .
+            " da oportunidade <a style='font-weight:bold;' href='/oportunidade/{$registration->opportunity->id}'>%s</a> está com os pareceres publicados.",
+            $registration->number,
+            $registration->opportunity->name
+        );
+        $notification->save(true);
+    }
+
+    private static function sendToMailQueue(Collection $registrations): void
+    {
+        $amqpQueueService = new AmqpQueueService();
+
+        $registrationsData = [];
+        foreach ($registrations as $registration) {
+            $registrationsData[] = [
+                'number' => $registration->number,
+                'url' => $registration->getSingleUrl(),
+                'agent' => [
+                    'name' => $registration->owner->name,
+                    'email' => $registration->owner->user->email,
+                ],
+            ];
+        }
+
+        $data = [
+            'registrations' => $registrationsData,
+            'opportunity' => [
+                'name' => $registration->opportunity->name,
+                'url', $registration->opportunity->getSingleUrl(),
+            ],
+        ];
+        $message = $amqpQueueService->createMessage($data);
+
+        $amqpQueueService->sendToQueue($message, 'opinionsPublished', 'plugins');
     }
 
     public static function getCriteriaMeta(Opportunity $opportunity): array

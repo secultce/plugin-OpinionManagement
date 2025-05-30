@@ -1,3 +1,1 @@
-<th
-    class='registration-status-col'
-></th><?= \MapasCulturais\i::__('Administrador') ?></th>
+<th class='registration-status-col'><?= \MapasCulturais\i::__('Administrador') ?></th>
