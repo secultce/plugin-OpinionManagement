@@ -159,8 +159,7 @@ class OpinionManagement extends Controller
 
     private static function sendToMailQueue(Collection $registrations): void
     {
-        $amqpQueueService = new AmqpQueueService();
-
+        $app = App::i();
         $registrationsData = [];
         foreach ($registrations as $registration) {
             $registrationsData[] = [
@@ -177,12 +176,18 @@ class OpinionManagement extends Controller
             'registrations' => $registrationsData,
             'opportunity' => [
                 'name' => $registration->opportunity->name,
-                'url', $registration->opportunity->getSingleUrl(),
+                'url' =>  $registration->opportunity->getSingleUrl(),
             ],
         ];
-        $message = $amqpQueueService->createMessage($data);
 
-        $amqpQueueService->sendToQueue($message, 'opinionsPublished', 'plugins');
+        // Observar padrão usado na documentação para uso do mapa cultural 
+        $queueService = new AmqpQueueService();
+        $queueService->sendMessage(
+            $app->config['rabbitmq']['exchange_default'],
+            '',
+            $data,
+            $app->config['rabbitmq']['queues']['queue_opinion_management']
+        );
     }
 
     public static function getCriteriaMeta(Opportunity $opportunity): array
